@@ -1,0 +1,548 @@
+{
+  "name": "PDF aidiagme V2",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "acbe01fe-6d3b-42c3-82b1-13848ee19a41",
+      "name": "When clicking ‘Test workflow’",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -880,
+        -140
+      ]
+    },
+    {
+      "parameters": {
+        "model": "google/gemini-2.5-flash",
+        "options": {}
+      },
+      "id": "c1da3e10-533c-4a9b-b152-d72b68535a12",
+      "name": "OpenRouter Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -640,
+        240
+      ],
+      "credentials": {
+        "openRouterApi": {
+          "id": "XmCnDCr0xWdbQUPp",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "for (const item of $input.all()) {\n  item.json.chatInput =$input.first().json.text\n}\n\nreturn $input.all(); // Retourne tous les éléments d'entrée modifiés"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        20,
+        -140
+      ],
+      "id": "007d530e-abe5-44dc-8b90-e28e3a1e47c3",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "title": "={{ $('AI Agent title').item.json.output }}",
+        "additionalFields": {
+          "authorId": 8,
+          "content": "={{ $('AI Agent Content').item.json.output }}",
+          "slug": "={{ $json.output }}"
+        }
+      },
+      "type": "n8n-nodes-base.wordpress",
+      "typeVersion": 1,
+      "position": [
+        -580,
+        500
+      ],
+      "id": "1ccc024e-0274-487e-bb28-c4385c45cec6",
+      "name": "Wordpress",
+      "credentials": {
+        "wordpressApi": {
+          "id": "Z70GQrQzr8qREZLW",
+          "name": "WP Aidiagme.fr"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "prompt": "=Generate cover image: {{ $json.title.rendered }}",
+        "options": {
+          "returnImageUrls": false
+        }
+      },
+      "name": "Generate Image",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "position": [
+        -400,
+        500
+      ],
+      "id": "72eab060-6063-45f8-be05-b7f6e5129245",
+      "typeVersion": 1.8,
+      "credentials": {
+        "openAiApi": {
+          "id": "JJ7j5a7vJcFOzbhF",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://aidiagme.fr/wp-json/wp/v2/media",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "wordpressApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Disposition",
+              "value": "=attachment; filename={{ $('Wordpress').item.json.id }}.png"
+            },
+            {
+              "name": "Content-Type",
+              "value": "image/png"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {}
+      },
+      "name": "Upload Image",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        -180,
+        500
+      ],
+      "id": "64e4902e-676a-44ee-b50c-a6a33bffcf5b",
+      "typeVersion": 4.2,
+      "credentials": {
+        "wordpressApi": {
+          "id": "Z70GQrQzr8qREZLW",
+          "name": "WP Aidiagme.fr"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://aidiagme.fr/wp-json/wp/v2/posts/{{ $('Wordpress').item.json.id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "wordpressApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "featured_media",
+              "value": "={{ $json.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set Featured Image",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        40,
+        500
+      ],
+      "id": "aaa55aa2-ebe4-43e6-a1f0-d3f3486832d9",
+      "typeVersion": 4.2,
+      "credentials": {
+        "wordpressApi": {
+          "id": "Z70GQrQzr8qREZLW",
+          "name": "WP Aidiagme.fr"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "limit": 1,
+        "filter": {
+          "folderId": {
+            "__rl": true,
+            "value": "https://drive.google.com/drive/u/2/folders/1WOfGr0c7urcznPVwaiYDllOYs8TGaLjq",
+            "mode": "url"
+          },
+          "whatToSearch": "files"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -660,
+        -140
+      ],
+      "id": "e9961ba1-1a0f-4fb5-9a6b-644d6b866dd2",
+      "name": "Google Drive",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "GlkRcsfKD0ktWq91",
+          "name": "Google Drive account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        -140
+      ],
+      "id": "1d8a495e-bfc6-48c8-9e6d-3be92c5087be",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -380,
+        -140
+      ],
+      "id": "6c44e066-443a-46f8-8faf-0b0fa8cfd356",
+      "name": "Dowload file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "GlkRcsfKD0ktWq91",
+          "name": "Google Drive account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "move",
+        "fileId": {
+          "__rl": true,
+          "value": "https://drive.google.com/file/d/13lu5OJFbCQXJohBD-hPWghkwJ2C_c6_i/view?usp=sharing",
+          "mode": "url"
+        },
+        "driveId": {
+          "__rl": true,
+          "value": "https://drive.google.com/drive/u/0/folders/1WOfGr0c7urcznPVwaiYDllOYs8TGaLjq",
+          "mode": "url"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "https://drive.google.com/drive/u/0/folders/1FehGUGB6T7wxkOaKN9zdh3kpvVLUr-U7",
+          "mode": "url"
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        280,
+        500
+      ],
+      "id": "cac49e5d-16f0-463a-9c70-6047d621d6d1",
+      "name": "Google Drive1",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "GlkRcsfKD0ktWq91",
+          "name": "Google Drive account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "google/gemini-2.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -340,
+        260
+      ],
+      "id": "0969bb23-c4fa-44bd-a80a-3f31e7c733c8",
+      "name": "OpenRouter Chat Model1",
+      "credentials": {
+        "openRouterApi": {
+          "id": "XmCnDCr0xWdbQUPp",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "**RÈGLE D'OR : CONFORMITÉ ABSOLUE ET SORTIE EN TEXTE BRUT**\nVotre mission principale n'est PAS la créativité littéraire. Votre mission principale est la **CONFORMITÉ STRICTE** à 100% avec les règles quantitatives et structurelles de ce prompt. En cas de conflit entre un \"beau style\" et une \"règle\", **la règle l'emporte TOUJOURS.** Le corps de l'article doit être rendu en **texte brut (plain text)**. Toute mise en forme stylistique (gras, italique) est **strictement interdite**.\n---\nMETA-INSTRUCTION CRITIQUE POUR L'IA EXÉCUTANTE :\nCe prompt est un algorithme. Chaque étape est séquentielle et obligatoire. Les critères de succès non négociables sont : **1) Voix passive JAMAIS > 10.0%**, **2) Phrases longues (>20 mots) JAMAIS > 25.0%**, **3) Mots de transition JAMAIS < 30.0%**, **4) Respect absolu de TOUTES les règles SEO**, et **5) Absence totale de formatage non sollicité (gras, italique, citations)**.\n\n**EXIGENCE ABSOLUE : ZÉRO CITATION ET ZÉRO MISE EN FORME**\n* Le texte final doit être **TOTALEMENT EXEMPT** de toute marque de citation (``, etc.).\n* **Le formatage en gras (`**...**`) ou en italique (`*...*`) de l'expression clé ou de tout autre mot dans le corps du texte est strictement interdit.**\n* **ACTION DE FILTRAGE FINAL OBLIGATOIRE :** Avant de livrer le texte, vous devez le scanner et le nettoyer de manière algorithmique pour **supprimer toute trace de `**`, `*` (pour l'italique), et ``.** Le texte final doit être structurellement pur.\n---\n**ÉTAPE 1 : ANALYSE DES ENTRÉES**\nAnalysez la **publication scientifique médicale fournie** et la limite de densité si spécifiée.\n\n---\n**ÉTAPE 2 : RÉDACTION ET OPTIMISATION DE L'ARTICLE**\n**SECTION 2.1 : STRUCTURE DU CONTENU (Titres H2)**\n1.  Pourquoi cette étude est-elle importante ?\n2.  La question de recherche et la méthode employée\n3.  Les résultats clés de la publication\n4.  Que signifient ces résultats pour les patients et les médecins ?\n5.  Limites de l'étude et perspectives d'avenir\n6.  Conclusion : Ce qu'il faut retenir\n\n**SECTION 2.2 : DIRECTIVES DE STYLE NON NÉGOCIABLES**\n* **Concision Algorithmique :** Pensez comme un programmeur. Chaque phrase est une ligne de code qui doit respecter une longueur maximale. Refactorisez immédiatement les phrases longues.\n* **Fluidité Systématique :** Utilisez les mots de transition comme des connecteurs logiques pour lier au moins 30% de vos phrases.\n* **Voix Active par Défaut :** C'est la seule syntaxe autorisée.\n\n**SECTION 2.3 : STRATÉGIE SEO DURANT LA RÉDACTION**\n* **Introduction :** Injectez l'**expression clé exacte** dans la toute première phrase.\n* **Densité :** Répartissez l'**expression clé exacte** 4 à 8 fois.\n* **Sous-titres (H2/H3) :** Avant de rédiger, listez et révisez vos titres pour que **40% à 50%** contiennent l'expression clé ou un synonyme.\n\n**SECTION 2.4 : SECTIONS FINALES OBLIGATOIRES**\n* **Section 1 :** `## Ressources complémentaires`\n    * **Règle Stricte :** UNE SEULE PUCE.\n    * **Format obligatoire :** `* [Lien vers l'article médical original](URL_DIRECT)`\n* **Section 2 :** `## Découvrez AI DiagMe`\n    * Insérez **exactement** le texte suivant, sans puce :\n      `N'attendez plus pour prendre en main la compréhension de vos analyses sanguines. Comprenez vos résultats d’analyse de laboratoire en quelques minutes avec notre plateforme [aidiagme.fr](https://www.aidiagme.fr) ; votre santé mérite cette attention particulière !`\n---\n**ÉTAPE 2.5 : BOUCLE DE VALIDATION ALGORITHMIQUE**\nSi un test est à \"NON\", corrigez et recommencez TOUS les tests depuis 5.1.\n\n* **5.1. TEST DE PROPRETÉ (PLAIN TEXT) :** Le corps de l'article est-il 100% exempt de : **a) marques ``, b) mise en gras (`**`), c) mise en italique (`*`)** ? (OUI/NON)\n* **5.2. TEST DE LA VOIX PASSIVE :** ≤ 10.0% ? (OUI/NON)\n* **5.3. TEST DE CONCISION (PHRASES) :** ≤ 25.0% de phrases > 20 mots ? (OUI/NON)\n* **5.4. TEST DE FLUIDITÉ (TRANSITIONS) :** ≥ 30.0% ? (OUI/NON)\n* **5.5. TEST D'INTÉGRATION SEO :**\n    * a) Le H1 final est-il celui défini en 1.5 ? (OUI/NON)\n    * d) L'expression clé est-elle dans la 1ère phrase de l'intro ? (OUI/NON)\n    * e) La densité est-elle entre 4 et 8 ? (OUI/NON)\n    * f) Le % dans les sous-titres est-il entre 40% et 50% ? (OUI/NON)\n* **5.6. TEST DE STRUCTURE :** Le format des sections finales est-il exact ? (OUI/NON)\n* **VALIDATION FINALE :** Si tous les tests sont à \"OUI\", passez à l'Étape 3.\n---\n**ÉTAPE 3 : LIVRABLES**\n**LIVRABLE 1 : RAPPORT DE CONFORMITÉ**\n* **Données de conformité FINALES :**\n    * **Propreté du texte :** Confirmé (Oui, Zéro citation, Zéro gras, Zéro italique)\n    * **Voix passive :** % (cible ≤ 10.0%)\n    * **Longueur des phrases :** % > 20 mots (cible ≤ 25.0%)\n    * **Mots de transition :** % (cible ≥ 30.0%)\n    * **Stratégie SEO :**\n        * Validation des éléments pré-calculés : **Confirmé (Oui)**\n        * Position dans l'intro : **Confirmé (Oui)**\n        * Densité : **X occurrences** (cible 4-8)\n        * Présence dans les sous-titres : **Y %** (cible 40-50%)\n    * **Longueur de l'article :** X mots (cible 800-1200).\n\n \"Veuillez insérer ici l'intégralité de l'article formaté en HTML sans le titre. Le contenu HTML lui-même DOIT inclure les balises HTML appropriées pour la structure de l'article (ex: `<h1>`, `<h2>`, `<p>`, `<ul>`, `<li>`, `<a>`, `<strong>`, `<em>` etc.).\"\n}"
+        }
+      },
+      "id": "1b38db92-3bae-4bd2-b1ce-42e70177e9c5",
+      "name": "AI Agent Content",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        -640,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=donne moi le titre de  {{ $json.output }}",
+        "options": {
+          "systemMessage": "Titre SEO (balise title) :** Expression clé exacte au début, informatif et concis **(64 caractères maximum, espaces inclus) et rien d autre"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        -340,
+        80
+      ],
+      "id": "d0c25ba0-2b27-4932-a38b-08d27f227755",
+      "name": "AI Agent title"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=genere moi un slug a partir de : {{ $('AI Agent Content').item.json.output }}",
+        "options": {
+          "systemMessage": "Slug :** Suggérez un slug optimisé (ex: `nom-de-la-maladie`).\net rien d autre"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        -20,
+        80
+      ],
+      "id": "2e3ccdad-88f0-445f-995d-0f49a7b6b6ed",
+      "name": "AI Agent slug"
+    },
+    {
+      "parameters": {
+        "model": "google/gemini-2.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        0,
+        260
+      ],
+      "id": "68d94c75-d93d-48b6-b74b-f306d1f6c5e9",
+      "name": "OpenRouter Chat Model2",
+      "credentials": {
+        "openRouterApi": {
+          "id": "XmCnDCr0xWdbQUPp",
+          "name": "OpenRouter account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Google Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent Content",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "AI Agent Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wordpress": {
+      "main": [
+        [
+          {
+            "node": "Generate Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Image": {
+      "main": [
+        [
+          {
+            "node": "Upload Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload Image": {
+      "main": [
+        [
+          {
+            "node": "Set Featured Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive": {
+      "main": [
+        [
+          {
+            "node": "Dowload file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dowload file": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Featured Image": {
+      "main": [
+        [
+          {
+            "node": "Google Drive1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive1": {
+      "main": [
+        [
+          {
+            "node": "Google Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent title",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent Content": {
+      "main": [
+        [
+          {
+            "node": "AI Agent title",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent title": {
+      "main": [
+        [
+          {
+            "node": "AI Agent slug",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent slug": {
+      "main": [
+        [
+          {
+            "node": "Wordpress",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent slug",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "8f7cce92-297d-465e-b164-cae1580b49ca",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7b7399ec9e8fb84ce1ac917fba6c20bb30915e8d955164c5cafedd212b175f33"
+  },
+  "id": "WmA8QiXEwOeFKCEF",
+  "tags": []
+}
