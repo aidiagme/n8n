@@ -1,0 +1,714 @@
+{
+  "name": "Translate wp V4 Gemini 2.5 flash",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "Tu es un expert en traduction WordPress du français vers l'anglais américain.\n\nJe vais te fournir un contenu WordPress en français.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        940,
+        120
+      ],
+      "id": "338335c7-ea75-43d7-806b-6833c486055b",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "jsCode": "for (const item of $input.all()) {\n  const data = $input.first().json;\n  item.json.chatInput = `TITLE: ${data.title.rendered}\\nSLUG: ${data.slug}\\nCONTENT: ${data.content.rendered}`;\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        780,
+        120
+      ],
+      "id": "ee417324-04ec-4e97-a735-68fab0e8dc15",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "postId": "={{ $json.ID }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.wordpress",
+      "typeVersion": 1,
+      "position": [
+        580,
+        120
+      ],
+      "id": "bf4b153f-7599-491e-8512-e3f65a52301c",
+      "name": "WP Get Page Aidiagme.fr1",
+      "credentials": {
+        "wordpressApi": {
+          "id": "Z70GQrQzr8qREZLW",
+          "name": "WP Aidiagme.fr"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "title": "={{ $('AI Agent').item.json.output }}",
+        "additionalFields": {
+          "authorId": 12,
+          "content": "={{ $('AI Agent1').item.json.output }}",
+          "slug": "={{ $json.output }}",
+          "categories": [
+            47
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.wordpress",
+      "typeVersion": 1,
+      "position": [
+        540,
+        420
+      ],
+      "id": "407108b7-030f-4e5a-8033-99be4ea72abe",
+      "name": "WP Create Page AIdiagme.com1",
+      "credentials": {
+        "wordpressApi": {
+          "id": "l6YXA0ORo2Nhly66",
+          "name": "WP AiDiagme.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "Traduis les articles de aidiagme.fr -> Aidiagme.com \nMaintenant traduit aussi le titre et le slug.\nUtilise Gemini 2.5 flash",
+        "width": 400
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -20,
+        -140
+      ],
+      "typeVersion": 1,
+      "id": "1650d4df-8e00-49ce-be73-a913f6597c43",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        120
+      ],
+      "id": "2d31302e-6cc2-4ba1-972d-275879b8499a",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "prompt": "=Generate cover image: {{ $json.title.rendered }}",
+        "options": {
+          "returnImageUrls": false
+        }
+      },
+      "name": "Generate Image",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "position": [
+        740,
+        420
+      ],
+      "id": "086d61d7-a171-4a98-95c7-e14a2342988c",
+      "typeVersion": 1.8,
+      "credentials": {
+        "openAiApi": {
+          "id": "JJ7j5a7vJcFOzbhF",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://aidiagme.com/wp-json/wp/v2/media",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "wordpressApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Disposition",
+              "value": "=attachment; filename={{ $('WP Create Page AIdiagme.com1').item.json.slug }}.png"
+            },
+            {
+              "name": "Content-Type",
+              "value": "image/png"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {}
+      },
+      "name": "Upload Image",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        960,
+        420
+      ],
+      "id": "5968d26f-a507-41ce-8506-059a098a9a0d",
+      "typeVersion": 4.2,
+      "credentials": {
+        "wordpressApi": {
+          "id": "l6YXA0ORo2Nhly66",
+          "name": "WP AiDiagme.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://aidiagme.com/wp-json/wp/v2/posts/{{ $('WP Create Page AIdiagme.com1').item.json.id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "wordpressApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "featured_media",
+              "value": "={{ $json.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set Featured Image",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        1160,
+        420
+      ],
+      "id": "b9deddb5-ace4-4ed2-84d3-e610290e9d64",
+      "typeVersion": 4.2,
+      "credentials": {
+        "wordpressApi": {
+          "id": "l6YXA0ORo2Nhly66",
+          "name": "WP AiDiagme.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1BHCVanbWg16dXrBYzjk6AKgqJiIUJSeEjhFVr0VOpls/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Feuille 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1BHCVanbWg16dXrBYzjk6AKgqJiIUJSeEjhFVr0VOpls/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "TODO",
+              "lookupValue": "todo"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        160,
+        120
+      ],
+      "id": "e7c62f9b-f651-453e-99f1-1ead88eaf114",
+      "name": "Google Sheets",
+      "credentials": {
+        "googleApi": {
+          "id": "Ki34FBEV3ABUib6h",
+          "name": "Google Service Account aidiagme"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1BHCVanbWg16dXrBYzjk6AKgqJiIUJSeEjhFVr0VOpls",
+          "mode": "list",
+          "cachedResultName": "Articles Id Aidiagme.fr",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1BHCVanbWg16dXrBYzjk6AKgqJiIUJSeEjhFVr0VOpls/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Feuille 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1BHCVanbWg16dXrBYzjk6AKgqJiIUJSeEjhFVr0VOpls/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": "={{ $('Google Sheets').item.json.row_number }}",
+            "TODO": "complété"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "TODO",
+              "displayName": "TODO",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1380,
+        420
+      ],
+      "id": "d771baac-6d11-47a7-b8bc-1f46a3b9d2b1",
+      "name": "Google Sheets1",
+      "credentials": {
+        "googleApi": {
+          "id": "Ki34FBEV3ABUib6h",
+          "name": "Google Service Account aidiagme"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1BHCVanbWg16dXrBYzjk6AKgqJiIUJSeEjhFVr0VOpls",
+          "mode": "list",
+          "cachedResultName": "Articles Id Aidiagme.fr",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1BHCVanbWg16dXrBYzjk6AKgqJiIUJSeEjhFVr0VOpls/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Feuille 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1BHCVanbWg16dXrBYzjk6AKgqJiIUJSeEjhFVr0VOpls/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": "={{ $json.row_number+1 }}",
+            "TODO": "todo"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "TODO",
+              "displayName": "TODO",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1640,
+        420
+      ],
+      "id": "46960953-0255-409b-bdd6-13a78584ca59",
+      "name": "Google Sheets2",
+      "credentials": {
+        "googleApi": {
+          "id": "Ki34FBEV3ABUib6h",
+          "name": "Google Service Account aidiagme"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "google/gemini-2.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        280
+      ],
+      "id": "e6d2020b-e2fc-4b57-966f-7eca7be2e4f4",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "XmCnDCr0xWdbQUPp",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=traduis moi le titre en anglais {{ $('Code1').item.json.title.rendered }}",
+        "options": {
+          "systemMessage": "=tu dois me donner la traduction en anglais et rien d'autre en une seule phrase"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        1240,
+        120
+      ],
+      "id": "41fdd117-4c0b-4816-bc8a-fa7115442138",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "google/gemini-2.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        1260,
+        280
+      ],
+      "id": "fe3d3162-7ceb-4e60-a42d-772fbc0bb7ab",
+      "name": "OpenRouter Chat Model1",
+      "credentials": {
+        "openRouterApi": {
+          "id": "XmCnDCr0xWdbQUPp",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=genere moi un slug en anglais a partir de : {{ $('WP Get Page Aidiagme.fr1').item.json.title.rendered }}",
+        "options": {
+          "systemMessage": "tu dois me donner la traduction en anglais et rien d'autre en plusieurs mots separé par des -"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        1600,
+        120
+      ],
+      "id": "a950552d-af21-4c39-a9e8-15c531d86c2e",
+      "name": "AI Agent2"
+    },
+    {
+      "parameters": {
+        "model": "google/gemini-2.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        1620,
+        280
+      ],
+      "id": "584f2bde-c022-4484-a0d1-b26fe7b20880",
+      "name": "OpenRouter Chat Model2",
+      "credentials": {
+        "openRouterApi": {
+          "id": "XmCnDCr0xWdbQUPp",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "if ($input.first().json.ID>0){\n  \n\n// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  item.json.myNewField = 1;\n}\n\nreturn $input.all();\n}  "
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        380,
+        120
+      ],
+      "id": "6fae03bf-eb50-4ca3-a161-5d8bf6e08be8",
+      "name": "Code"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WP Get Page Aidiagme.fr1": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Image": {
+      "main": [
+        [
+          {
+            "node": "Upload Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload Image": {
+      "main": [
+        [
+          {
+            "node": "Set Featured Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WP Create Page AIdiagme.com1": {
+      "main": [
+        [
+          {
+            "node": "Generate Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Featured Image": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets1": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets2": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent2": {
+      "main": [
+        [
+          {
+            "node": "WP Create Page AIdiagme.com1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "WP Get Page Aidiagme.fr1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "4e8b2f84-065e-4727-a06d-66553fedf0a6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7b7399ec9e8fb84ce1ac917fba6c20bb30915e8d955164c5cafedd212b175f33"
+  },
+  "id": "dZB9kjJ6RfD2KN2s",
+  "tags": [
+    {
+      "createdAt": "2025-05-14T20:22:22.337Z",
+      "updatedAt": "2025-05-14T20:22:22.337Z",
+      "id": "dVPQgvflAOu027fQ",
+      "name": "Wordpress"
+    }
+  ]
+}
