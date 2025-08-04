@@ -1,0 +1,950 @@
+{
+  "name": "Stripe PROD",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "840b3ff6-2071-4c57-ac00-652f4dd175ae",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "resource": "charge",
+        "operation": "getAll"
+      },
+      "type": "n8n-nodes-base.stripe",
+      "typeVersion": 1,
+      "position": [
+        220,
+        0
+      ],
+      "id": "fd4b3da0-deb9-43bc-bcee-9fe08d1540f4",
+      "name": "Stripe",
+      "credentials": {
+        "stripeApi": {
+          "id": "lqwRQ2cwYSEgUt2r",
+          "name": "Stripe account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1IluZqkQngW9UHnCuatCEQGTpVqNJLKFaUff5MALxb9E",
+          "mode": "list",
+          "cachedResultName": "SMC: Pilotage Financier",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1IluZqkQngW9UHnCuatCEQGTpVqNJLKFaUff5MALxb9E/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 123625940,
+          "mode": "list",
+          "cachedResultName": "Stripe raw data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1IluZqkQngW9UHnCuatCEQGTpVqNJLKFaUff5MALxb9E/edit#gid=123625940"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.id }}",
+            "Created date (UTC)": "={{new Date($json.created * 1000).toISOString().slice(0, 16).replace('T', ' ').replace(/-/g, '/')}}",
+            "Amount": "={{ $json.amount /100}}",
+            "Amount Refunded": "={{ $json.amount_refunded  /100}}",
+            "Currency": "={{ $json.currency }}",
+            "Captured": "={{ $json.captured }}",
+            "Transfer Group": "={{ $json.transfer_group }}",
+            "Transfer": "={{ $json.transfer_data }}",
+            "Destination": "{{ $json.destination }}",
+            "Application ID": "={{ $json.application }}",
+            "Application Fee": "={{ $json.application_fee }}",
+            "UTM Source": "={{ $json.source }}",
+            "Customer Phone": "={{ $json.billing_details.phone }}",
+            "Customer Email": "={{ $json.billing_details.email }}",
+            "Customer Description": "={{ $json.description }}",
+            "Customer ID": "={{ $json.customer }}",
+            "Card Tokenization Method": "={{ $json.payment_method_details.card.network_token.used }}",
+            "Card Last4": "={{ $json.payment_method_details.card.last4 }}",
+            "Card Issue Country": "={{ $json.payment_method_details.card.country }}",
+            "Card Funding": "={{ $json.payment_method_details.card.funding }}",
+            "Card Fingerprint": "={{ $json.payment_method_details.card.fingerprint }}",
+            "Card Exp Year": "={{ $json.payment_method_details.card.exp_year }}",
+            "Card Exp Month": "={{ $json.payment_method_details.card.exp_month }}",
+            "Card CVC Status": "={{ $json.payment_method_details.card.extended_authorization.status }}",
+            "Card Brand": "={{ $json.payment_method_details.card.brand }}",
+            "Card Address Zip": "={{ $json.billing_details.address.postal_code }}",
+            "Card Address Country": "={{ $json.billing_details.address.country }}",
+            "Card Address State": "={{ $json.billing_details.address.state }}",
+            "Card Address City": "={{ $json.billing_details.address.city }}",
+            "Card Address Line2": "={{ $json.billing_details.address.line2 }}",
+            "Card Address Line1": "={{ $json.billing_details.address.line1 }}",
+            "Card Name": "={{ $json.billing_details.name }}",
+            "Card ID": "={{ $json.payment_method }}",
+            "Seller Message": "={{ $json.outcome.seller_message }}",
+            "Status": "={{ $json.paid }}",
+            "Statement Descriptor": "={{ $json.calculated_statement_descriptor }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Created date (UTC)",
+              "displayName": "Created date (UTC)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Amount",
+              "displayName": "Amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Amount Refunded",
+              "displayName": "Amount Refunded",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Currency",
+              "displayName": "Currency",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Captured",
+              "displayName": "Captured",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Converted Amount",
+              "displayName": "Converted Amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Converted Amount Refunded",
+              "displayName": "Converted Amount Refunded",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Converted Currency",
+              "displayName": "Converted Currency",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Decline Reason",
+              "displayName": "Decline Reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Description",
+              "displayName": "Description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Fee",
+              "displayName": "Fee",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Refunded date (UTC)",
+              "displayName": "Refunded date (UTC)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Statement Descriptor",
+              "displayName": "Statement Descriptor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Seller Message",
+              "displayName": "Seller Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Taxes On Fee",
+              "displayName": "Taxes On Fee",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Card ID",
+              "displayName": "Card ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Customer ID",
+              "displayName": "Customer ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Customer Description",
+              "displayName": "Customer Description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Customer Email",
+              "displayName": "Customer Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Invoice ID",
+              "displayName": "Invoice ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Transfer",
+              "displayName": "Transfer",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "typeform_response_id (metadata)",
+              "displayName": "typeform_response_id (metadata)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "typeform_form_id (metadata)",
+              "displayName": "typeform_form_id (metadata)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Card Name",
+              "displayName": "Card Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Card Address Line1",
+              "displayName": "Card Address Line1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Card Address Line2",
+              "displayName": "Card Address Line2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Card Address City",
+              "displayName": "Card Address City",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Card Address State",
+              "displayName": "Card Address State",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Card Address Country",
+              "displayName": "Card Address Country",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Card Address Zip",
+              "displayName": "Card Address Zip",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Card AVS Line1 Status",
+              "displayName": "Card AVS Line1 Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Card AVS Zip Status",
+              "displayName": "Card AVS Zip Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Card Brand",
+              "displayName": "Card Brand",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Card CVC Status",
+              "displayName": "Card CVC Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Card Exp Month",
+              "displayName": "Card Exp Month",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Card Exp Year",
+              "displayName": "Card Exp Year",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Card Fingerprint",
+              "displayName": "Card Fingerprint",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Card Funding",
+              "displayName": "Card Funding",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Card Issue Country",
+              "displayName": "Card Issue Country",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Card Last4",
+              "displayName": "Card Last4",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Card Tokenization Method",
+              "displayName": "Card Tokenization Method",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Customer ID",
+              "displayName": "Customer ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Customer Description",
+              "displayName": "Customer Description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Customer Email",
+              "displayName": "Customer Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Customer Phone",
+              "displayName": "Customer Phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Shipping Name",
+              "displayName": "Shipping Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Shipping Address Line1",
+              "displayName": "Shipping Address Line1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Shipping Address Line2",
+              "displayName": "Shipping Address Line2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Shipping Address City",
+              "displayName": "Shipping Address City",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Shipping Address State",
+              "displayName": "Shipping Address State",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Shipping Address Country",
+              "displayName": "Shipping Address Country",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Shipping Address Postal Code",
+              "displayName": "Shipping Address Postal Code",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Disputed Amount",
+              "displayName": "Disputed Amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Dispute Date (UTC)",
+              "displayName": "Dispute Date (UTC)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Dispute Evidence Due (UTC)",
+              "displayName": "Dispute Evidence Due (UTC)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Dispute Reason",
+              "displayName": "Dispute Reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Dispute Status",
+              "displayName": "Dispute Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Invoice ID",
+              "displayName": "Invoice ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Invoice Number",
+              "displayName": "Invoice Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Checkout Session ID",
+              "displayName": "Checkout Session ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Checkout Custom Field 1 Key",
+              "displayName": "Checkout Custom Field 1 Key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Checkout Custom Field 1 Value",
+              "displayName": "Checkout Custom Field 1 Value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Checkout Custom Field 2 Key",
+              "displayName": "Checkout Custom Field 2 Key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Checkout Custom Field 2 Value",
+              "displayName": "Checkout Custom Field 2 Value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Checkout Custom Field 3 Key",
+              "displayName": "Checkout Custom Field 3 Key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Checkout Custom Field 3 Value",
+              "displayName": "Checkout Custom Field 3 Value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Checkout Line Item Summary",
+              "displayName": "Checkout Line Item Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Checkout Promotional Consent",
+              "displayName": "Checkout Promotional Consent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Checkout Terms of Service Consent",
+              "displayName": "Checkout Terms of Service Consent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Client Reference ID",
+              "displayName": "Client Reference ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Payment Link ID",
+              "displayName": "Payment Link ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "UTM Campaign",
+              "displayName": "UTM Campaign",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "UTM Content",
+              "displayName": "UTM Content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "UTM Medium",
+              "displayName": "UTM Medium",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "UTM Source",
+              "displayName": "UTM Source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "UTM Term",
+              "displayName": "UTM Term",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Terminal Location ID",
+              "displayName": "Terminal Location ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Terminal Reader ID",
+              "displayName": "Terminal Reader ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Application Fee",
+              "displayName": "Application Fee",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Application ID",
+              "displayName": "Application ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Destination",
+              "displayName": "Destination",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Transfer",
+              "displayName": "Transfer",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Transfer Group",
+              "displayName": "Transfer Group",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "typeform_response_id (metadata)",
+              "displayName": "typeform_response_id (metadata)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "typeform_form_id (metadata)",
+              "displayName": "typeform_form_id (metadata)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        440,
+        0
+      ],
+      "id": "8ad2b097-b5ec-4907-beb3-bf3fa519ef03",
+      "name": "Google Sheets",
+      "credentials": {
+        "googleApi": {
+          "id": "Ki34FBEV3ABUib6h",
+          "name": "Google Service Account aidiagme"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Stripe",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Stripe": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "8a8bf47f-e870-4fcd-bb89-b4f2ccd9d99c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7b7399ec9e8fb84ce1ac917fba6c20bb30915e8d955164c5cafedd212b175f33"
+  },
+  "id": "KoUGpkdibv3bXelX",
+  "tags": []
+}
