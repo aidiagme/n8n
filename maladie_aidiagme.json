@@ -1,0 +1,926 @@
+{
+  "name": "maladie aidiagme",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "8324aef3-6b62-4416-b543-ea8c08402bf1",
+      "name": "When clicking ‘Test workflow’",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -880,
+        -140
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "12UaDZa_cf9BJwLH7TGyMz1Dh1gqxv6I7Ako31sdYQoU",
+          "mode": "list",
+          "cachedResultName": "Maladie et pathologies",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/12UaDZa_cf9BJwLH7TGyMz1Dh1gqxv6I7Ako31sdYQoU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2121583189,
+          "mode": "list",
+          "cachedResultName": "Feuille 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/12UaDZa_cf9BJwLH7TGyMz1Dh1gqxv6I7Ako31sdYQoU/edit#gid=2121583189"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "todo",
+              "lookupValue": "todo"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2d06550e-bd10-453f-bfc8-ad16f5b1c214",
+      "name": "Read URLs from Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -640,
+        -140
+      ],
+      "credentials": {
+        "googleApi": {
+          "id": "Ki34FBEV3ABUib6h",
+          "name": "Google Service Account aidiagme"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "for (const item of $input.all()) {\n\n  if (!item.json.Maladie) {\n    item.json = {};\n  }\n  item.json.chatInput = item.json.Maladie; // Prend la valeur de \"Maladie\" et la met dans \"item.json.chatInput\"\n}\n\nreturn $input.all(); // Retourne tous les éléments d'entrée modifiés"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -380,
+        -140
+      ],
+      "id": "89625667-e7b8-405f-8b4e-5a9ab0bca5e5",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "title": "={{ $('AI Agent title').item.json.output }}",
+        "additionalFields": {
+          "authorId": 8,
+          "content": "={{ $('AI Agent Content').item.json.output }}",
+          "slug": "={{ $json.output }}"
+        }
+      },
+      "type": "n8n-nodes-base.wordpress",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        140
+      ],
+      "id": "98c149f0-f77d-4240-abf6-a0af4d519268",
+      "name": "Wordpress",
+      "credentials": {
+        "wordpressApi": {
+          "id": "Z70GQrQzr8qREZLW",
+          "name": "WP Aidiagme.fr"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "prompt": "=Generate cover image: {{ $json.title.rendered }}",
+        "options": {
+          "returnImageUrls": false
+        }
+      },
+      "name": "Generate Image",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "position": [
+        -200,
+        140
+      ],
+      "id": "f5f795fd-2548-49b4-9139-4bf414af4cb3",
+      "typeVersion": 1.8,
+      "credentials": {
+        "openAiApi": {
+          "id": "JJ7j5a7vJcFOzbhF",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://aidiagme.fr/wp-json/wp/v2/media",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "wordpressApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Disposition",
+              "value": "=attachment; filename={{ $('Read URLs from Google Sheets').item.json.Maladie }}.png"
+            },
+            {
+              "name": "Content-Type",
+              "value": "image/png"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {}
+      },
+      "name": "Upload Image",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        -20,
+        140
+      ],
+      "id": "e0ab3723-ccbe-4841-86b4-9bb5321bd230",
+      "typeVersion": 4.2,
+      "credentials": {
+        "wordpressApi": {
+          "id": "Z70GQrQzr8qREZLW",
+          "name": "WP Aidiagme.fr"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://aidiagme.fr/wp-json/wp/v2/posts/{{ $('Wordpress').item.json.id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "wordpressApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "featured_media",
+              "value": "={{ $json.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set Featured Image",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        -540,
+        340
+      ],
+      "id": "31913097-0108-47c3-b44b-5efec1d8f876",
+      "typeVersion": 4.2,
+      "credentials": {
+        "wordpressApi": {
+          "id": "Z70GQrQzr8qREZLW",
+          "name": "WP Aidiagme.fr"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "12UaDZa_cf9BJwLH7TGyMz1Dh1gqxv6I7Ako31sdYQoU",
+          "mode": "list",
+          "cachedResultName": "Maladie et pathologies",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/12UaDZa_cf9BJwLH7TGyMz1Dh1gqxv6I7Ako31sdYQoU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2121583189,
+          "mode": "list",
+          "cachedResultName": "Feuille 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/12UaDZa_cf9BJwLH7TGyMz1Dh1gqxv6I7Ako31sdYQoU/edit#gid=2121583189"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": "={{ $('Code').item.json.row_number }}",
+            "todo": "complété"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "Eczéma",
+              "displayName": "Eczéma",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "todo",
+              "displayName": "todo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "date",
+              "displayName": "date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "date_gmt",
+              "displayName": "date_gmt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "guid",
+              "displayName": "guid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "modified",
+              "displayName": "modified",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "modified_gmt",
+              "displayName": "modified_gmt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "password",
+              "displayName": "password",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "slug",
+              "displayName": "slug",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "type",
+              "displayName": "type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "link",
+              "displayName": "link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "content",
+              "displayName": "content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "excerpt",
+              "displayName": "excerpt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "author",
+              "displayName": "author",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "featured_media",
+              "displayName": "featured_media",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "comment_status",
+              "displayName": "comment_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "ping_status",
+              "displayName": "ping_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "sticky",
+              "displayName": "sticky",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "template",
+              "displayName": "template",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "format",
+              "displayName": "format",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "meta",
+              "displayName": "meta",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "categories",
+              "displayName": "categories",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "tags",
+              "displayName": "tags",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "permalink_template",
+              "displayName": "permalink_template",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "generated_slug",
+              "displayName": "generated_slug",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "class_list",
+              "displayName": "class_list",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "acf",
+              "displayName": "acf",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "_links",
+              "displayName": "_links",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -320,
+        340
+      ],
+      "id": "3f45af18-ea1f-47fe-bd59-2a6f5dbd6aeb",
+      "name": "update complete",
+      "credentials": {
+        "googleApi": {
+          "id": "Ki34FBEV3ABUib6h",
+          "name": "Google Service Account aidiagme"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "12UaDZa_cf9BJwLH7TGyMz1Dh1gqxv6I7Ako31sdYQoU",
+          "mode": "list",
+          "cachedResultName": "Maladie et pathologies",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/12UaDZa_cf9BJwLH7TGyMz1Dh1gqxv6I7Ako31sdYQoU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2121583189,
+          "mode": "list",
+          "cachedResultName": "Feuille 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/12UaDZa_cf9BJwLH7TGyMz1Dh1gqxv6I7Ako31sdYQoU/edit#gid=2121583189"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "todo": "todo",
+            "row_number": "={{ $json.row_number +1}}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "Maladie",
+              "displayName": "Maladie",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "todo",
+              "displayName": "todo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -100,
+        340
+      ],
+      "id": "fd43e8c3-6ea0-4aea-90a6-8bc00d340e47",
+      "name": "update todo",
+      "credentials": {
+        "googleApi": {
+          "id": "Ki34FBEV3ABUib6h",
+          "name": "Google Service Account aidiagme"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "META-INSTRUCTION CRITIQUE POUR L'IA EXÉCUTANTE :\nCe prompt est le résultat d'itérations visant à obtenir un résultat d'une qualité et d'une conformité extrêmement spécifiques. La conformité la plus critique du livrable final concerne trois piliers : **1) le respect absolu du seuil de voix passive (JAMAIS \\> 10.0%)**, 2) la validité scientifique et médicale du contenu, et 3) la présentation intégrale en format Markdown brut. Le non-respect, même minime, de ces exigences rendra votre travail insatisfaisant. Les boucles de correction de l'Étape 2.5 sont votre principal outil pour garantir cette conformité totale. Prenez chaque instruction au pied de la lettre.\n**OBJECTIF PRINCIPAL :**\nVous agirez en tant qu'expert en rédaction médicale, vulgarisation scientifique et optimisation SEO. Votre mission est de **créer un article de référence complet et de haute qualité sur une maladie spécifique** à partir de son nom. Le contenu final doit être : scientifiquement et médicalement irréprochable et à jour, facile à comprendre par le grand public, présenté avec un ton strictement neutre, factuel et rassurant, méticuleusement optimisé pour le SEO (selon les standards Yoast SEO et les critères spécifiques, quantitatifs et IMPÉRATIFS ci-dessous), stylistiquement soigné et extrêmement lisible. La sortie finale de l'article doit être IMPÉRATIVEMENT et EXCLUSIVEMENT en format Markdown intégral, présenté dans un bloc de code, pour une intégration directe et sans erreur.\n**RÔLE DE L'IA :**\nRechercher, structurer, rédiger intégralement avec une priorité absolue donnée à l'exactitude scientifique, à la **rédaction en voix active**, au ton approprié, et au respect des seuils de lisibilité, optimiser pour le SEO, et générer l'article en suivant scrupuleusement les étapes et les critères ci-dessous, y compris des étapes de vérification et d'ajustement actifs, rigoureux, obligatoires et itératifs de votre part.\n**EXIGENCE ABSOLUE ET NON NÉGOCIABLE : ZÉRO MARQUE DE CITATION DANS LE CORPS DU TEXTE**\n  * Le texte final de l'article livré doit être TOTALEMENT, STRICTEMENT et ABSOLUMENT EXEMPT de toute forme de marque de citation, de référence de source, ou d'artefact de génération de type, [source X], [1], [mot\\_clé: numéro], ou toute variation similaire, qu'elle soit entre crochets, parenthèses ou autre.\n  * Ces marques, même si elles sont issues de votre processus interne de recherche d'information, NE DOIVENT JAMAIS APPARAÎTRE dans le texte final. Leur présence rendra la réponse ENTIÈREMENT INUTILISABLE.\n  * La section \"Ressources complémentaires\" est le SEUL ET UNIQUE LIEU désigné pour les références à des sources externes. Aucune autre forme de citation n'est autorisée ailleurs.\n  * **ACTION IMPÉRATIVE :** Scan méticuleux et suppression systématique avant livraison. Vous devez activement rechercher et éliminer ces marques.\n-----\n**ÉTAPE 1 : PRISE EN COMPTE DES INFORMATIONS INITIALES**\nAvant de commencer la rédaction, assurez-vous d'avoir reçu et compris les éléments suivants fournis par l'utilisateur :\n1.  **Nom de la Maladie (Expression Clé Principale) :** Le nom précis de la pathologie à traiter.\n2.  **Limite Maximale de Densité de l'Expression Clé (Optionnel) :** Si spécifié, ce nombre est une limite IMPÉRATIVE.\n3.  **Informations pour la section \"Pour en savoir plus sur d'autres maladies\" (Optionnel) :** Une liste de noms de maladies et leurs URL, ou la confirmation qu'aucune liste n'est fournie.\nSi le nom de la maladie est ambigu, demandez des clarifications.\n-----\n**ÉTAPE 2 : RECHERCHE, STRUCTURATION, RÉDACTION ET OPTIMISATION DE L'ARTICLE**\nProcédez comme suit :\n**SECTION 2.1 : RECHERCHE SCIENTIFIQUE, STRUCTURATION DU CONTENU ET EXACTITUDE MÉDICALE (PRIORITÉ ABSOLUE)**\n  * **Objectif Incontournable :** L'exactitude scientifique est la priorité absolue. Le contenu doit être irréprochable et digne de confiance. Imaginez que ce texte sera validé par un comité de médecins spécialistes.\n  * **Recherche Externe des Faits :** Vous devez activement baser votre rédaction sur des sources médicales faisant autorité et récentes.\n  * **Structure de Contenu Obligatoire :** Pour garantir l'exhaustivité, l'article DOIT aborder les points suivants, dans cet ordre. Chaque point majeur devrait idéalement correspondre à un titre H2.\n    1.  **Définition :** Qu'est-ce que la [Nom de la maladie] ?\n    2.  **Causes et Facteurs de Risque**\n    3.  **Symptômes et Signes**\n    4.  **Diagnostic :** Comment détecte-t-on la maladie ?\n    5.  **Traitements et Prise en Charge**\n    6.  **Avancées Scientifiques Récentes :** Quelles sont les dernières recherches ? (Voir exigence spécifique ci-dessous)\n    7.  **Prévention :** Est-il possible de réduire le risque ?\n    8.  **Vivre avec la [Nom de la maladie]**\n    9.  **Foire Aux Questions (FAQ)**\n  * **EXIGENCE SPÉCIFIQUE – RECHERCHE SUR LES AVANCÉES RÉCENTES (JUIN 2025) :**\n      * Pour la section \"Avancées Scientifiques Récentes\", vous devez **impérativement utiliser votre outil de recherche** pour trouver des informations publiées entre fin 2024 et juin 2025.\n      * Les sources doivent être de premier ordre : publications sur PubMed, rapports d'organisations de santé mondiales (OMS), articles de revues médicales de premier plan (The Lancet, NEJM, etc.).\n      * Synthétisez les 2-3 avancées les plus significatives (nouvelles pistes thérapeutiques, outils de diagnostic, compréhension de la maladie).\n      * **AVERTISSEMENT :** La plus grande rigueur est exigée. **En l'absence d'avancées significatives et vérifiables pour cette période, indiquez-le honnêtement** (par exemple : \"La recherche sur [Nom de la maladie] est très active, bien qu'aucune avancée majeure n'ait été publiée au premier semestre 2025. Les efforts se concentrent actuellement sur...\"). Ne générez JAMAIS de contenu spéculatif ou \"halluciné\". La fiabilité prime.\n  * **Prudence et Précision :** Évitez toute affirmation vague. Ne faites aucune extrapolation non étayée.\n**SECTION 2.2 : OPTIMISATION DE LA LISIBILITÉ, DU STYLE ET DU TON**\n  * **Vulgarisation :** Écrivez pour une compréhension parfaite par un non-spécialiste.\n  * **Ton Neutre et Rassurant :** Maintenez un ton STRICTEMENT NEUTRE, factuel et informatif. ÉVITEZ toute dramatisation ou suggestion d'émotions négatives.\n  * **Rédaction Active Impérative :** Dès la première ébauche, privilégiez systématiquement la voix active. La correction de la voix passive ne doit pas être une simple passe finale, mais un principe de rédaction de fond.\n  * **Fluidité et Variété :** Structurez pour une lecture fluide, en recherchant une VARIATION NATURELLE de la longueur et des débuts de phrases.\n  * **Paragraphes Concis :** Idéalement moins de 150 mots, JAMAIS plus de 300 mots.\n  * **Pas de Gras Automatique :** SOUS AUCUN PRÉTEXTE, ne mettez en gras l'expression clé ou d'autres mots dans le corps du texte de votre propre initiative.\n  * **Maillage Interne :** Si pertinent, proposez d'insérer des liens naturels vers des concepts généraux sur le site cible.\n  * **Formatage FAQ :** Titre de section en H2, chaque question en H3.\n  * **Expression Clé dans les Sous-titres (H2, H3) – Objectif Initial Strict :** Visez strictement 40-50% (max 50%), si naturel.\n  * **Densité de l'Expression Clé – Priorité à la Naturalité Extrême :** Respectez la limite max si fournie. Sinon, visez la densité la PLUS FAIBLE possible.\n**SECTION 2.4 : CRÉATION DES SECTIONS FINALES OBLIGATOIRES**\nEn fin d'article, ajoutez les sections suivantes dans cet ordre précis :\n  * **Section 1 :** `## Ressources complémentaires`\n      * Proposez au minimum deux liens externes uniques et pertinents vers des sites d'autorité. Format : `Texte du lien (URL)`.\n  * **Section 2 :** `## Découvrez AI DiagMe`\n      * Insérez **exactement** le contenu suivant en Markdown :\n        ```markdown\n        * [Nos publications](https://www.aidiagme.fr/publications-et-centre-de-ressources/)\n        * [Notre solution d'interprétation en ligne](https://www.aidiagme.fr/): N'attendez plus pour prendre en main la compréhension de vos analyses sanguines. Comprenez vos résultats d’analyse de laboratoire en quelques minutes avec notre plateforme aidiagme.fr ; votre santé mérite cette attention particulière !\n        ```\n  * **Section 3 :** `## Pour en savoir plus sur d'autres maladies`\n      * Listez d'autres pathologies selon les informations fournies à l'Étape 1 (si applicable).\n**SECTION 2.5 : BOUCLES DE CORRECTION STRICTES, OBLIGATOIRES ET ITÉRATIVES**\n**PRINCIPE FONDAMENTAL :** Le respect de CHAQUE critère ci-dessous est MANDATAIRE. En cas d'échec sur un critère, arrêtez, corrigez, et recommencez TOUTES les vérifications depuis 5.1.\n  * **5.1. Propreté du Texte :**\n      * **VÉRIFICATION :** Scannez le texte.\n      * **CRITÈRES :** Zéro marque de citation `[source]`, titres en \"sentence case\" français, zéro mise en gras non sollicitée, ton strictement neutre et rassurant.\n      * **ACTION SI ÉCHEC :** Corrigez. Recommencez IMPÉRATIVEMENT à 5.1.\n  * **5.2. Longueur des Blocs de Texte :**\n      * **VÉRIFICATION :** Mesurez chaque bloc de texte entre deux titres.\n      * **CRITÈRE :** Aucun bloc de texte ne doit dépasser 300 mots.\n      * **ACTION SI ÉCHEC :** Subdivisez avec un sous-titre pertinent (H3, H4). Recommencez IMPÉRATIVEMENT à 5.1.\n  * **5.3. CONTRÔLE ABSOLUMENT NON NÉGOCIABLE DE LA VOIX PASSIVE :**\n      * **CONTEXTE :** C'est un point de défaillance fréquent. Une attention maximale est requise ici. Votre capacité à respecter cette règle est un critère majeur d'évaluation de votre performance.\n      * **VÉRIFICATION :** Calculez le pourcentage de phrases à la voix passive dans tout le corps de l'article.\n      * **CRITÈRE ABSOLU :** Le résultat DOIT être **INFÉRIEUR OU ÉGAL à 10.0%**. Il n'y a AUCUNE exception. La cible idéale est de 3-5%.\n      * **ACTION EN CAS D'ÉCHEC :** Arrêtez tout. Réécrivez agressivement les phrases passives en phrases actives jusqu'à ce que le critère soit satisfait. Ensuite, vous DEVEZ recommencer l'intégralité du cycle de vérification depuis l'Étape 5.1.\n  * **5.4. CONTRÔLE IMPÉRATIF N°1 : MAÎTRISE DE LA LONGUEUR DES PHRASES**\n      * **RÈGLE :** AU MOINS 75% des phrases doivent avoir 20 mots OU MOINS (donc PAS PLUS de 25% \\> 20 mots).\n      * **ACTION SI ÉCHEC :** Scindez/reformulez. Recommencez IMPÉRATIVEMENT à 5.1.\n  * **5.5. Utilisation Optimale des Mots de Transition :**\n      * **VÉRIFICATION :** Calculez le pourcentage de phrases avec mots de transition.\n      * **CRITÈRE :** Au moins 30.0%. Cible : 40-45%.\n      * **ACTION SI ÉCHEC :** Ajoutez-en naturellement. Recommencez IMPÉRATIVEMENT à 5.1.\n  * **5.6. Contrôle Drastique de l'Expression Clé dans les Sous-titres (H2, H3) :**\n      * **VÉRIFICATION :** Calculez le pourcentage de H2/H3 contenant l'expression clé/synonymes.\n      * **CRITÈRE :** Strictement 40-50%. JAMAIS \\> 50%.\n      * **ACTION SI ÉCHEC :** Reformulez les sous-titres. Recommencez IMPÉRATIVEMENT à 5.1.\n  * **5.7. Densité de l'Expression Clé Principale :**\n      * **VÉRIFICATION :** Comptez les occurrences.\n      * **CRITÈRE :** Ne JAMAIS dépasser la limite maximale.\n      * **ACTION SI ÉCHEC :** Réduisez les occurrences. Recommencez IMPÉRATIVEMENT à 5.1.\n  * **VALIDATION FINALE :** Ne passez à l'Étape 3 que lorsque TOUS les critères de 5.1 à 5.7 sont respectés après une passe complète de vérification sans correction.\n---\n**ÉTAPE 3 : LIVRABLES**\n**LIVRABLE 1 : RAPPORT DE CONFORMITÉ**\n* **Données de conformité FINALES :**\n    * **Propreté du texte :** Confirmé (Oui, Zéro citation, Zéro gras, Zéro italique)\n    * **Voix passive :** % (cible ≤ 10.0%)\n    * **Longueur des phrases :** % > 20 mots (cible ≤ 25.0%)\n    * **Mots de transition :** % (cible ≥ 30.0%)\n    * **Stratégie SEO :**\n        * Validation des éléments pré-calculés : **Confirmé (Oui)**\n        * Position dans l'intro : **Confirmé (Oui)**\n        * Densité : **X occurrences** (cible 4-8)\n        * Présence dans les sous-titres : **Y %** (cible 40-50%)\n    * **Longueur de l'article :** X mots (cible 800-1200).\n\n \"Veuillez insérer ici l'intégralité de l'article formaté en HTML sans le titre. Le contenu HTML lui-même DOIT inclure les balises HTML appropriées pour la structure de l'article (ex: `<h1>`, `<h2>`, `<p>`, `<ul>`, `<li>`, `<a>`, `<strong>`, `<em>` etc.).\"\n}"
+        }
+      },
+      "id": "071a2ad5-35da-404f-a2f7-c41d1a66060c",
+      "name": "AI Agent Content",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        -160,
+        -140
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=donne moi le titre de  {{ $json.output }}",
+        "options": {
+          "systemMessage": "Titre SEO (balise title) :** Expression clé exacte au début, informatif et concis **(64 caractères maximum, espaces inclus) et rien d autre"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        120,
+        -140
+      ],
+      "id": "af7080a6-efa4-4c47-ace9-97a71919bdd2",
+      "name": "AI Agent title"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=genere moi un slug a partir de : {{ $('AI Agent Content').item.json.output }}",
+        "options": {
+          "systemMessage": "Slug :** Suggérez un slug optimisé (ex: `nom-de-la-maladie`).\net rien d autre"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        420,
+        -140
+      ],
+      "id": "ece5ae0e-c5f7-4c14-966e-7ad213924bac",
+      "name": "AI Agent slug"
+    },
+    {
+      "parameters": {
+        "model": "google/gemini-2.5-flash",
+        "options": {}
+      },
+      "id": "c65b193d-ede5-4055-bdd8-5c00ba912ae9",
+      "name": "OpenRouter Chat Model3",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -140,
+        0
+      ],
+      "credentials": {
+        "openRouterApi": {
+          "id": "XmCnDCr0xWdbQUPp",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "google/gemini-2.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        140,
+        20
+      ],
+      "id": "dc65e21b-8dd9-408d-8f3e-4930b146f778",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "XmCnDCr0xWdbQUPp",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "google/gemini-2.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        420,
+        20
+      ],
+      "id": "ce365d72-7a9f-4a08-a4b2-5463a893f10c",
+      "name": "OpenRouter Chat Model1",
+      "credentials": {
+        "openRouterApi": {
+          "id": "XmCnDCr0xWdbQUPp",
+          "name": "OpenRouter account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Read URLs from Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read URLs from Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "AI Agent Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wordpress": {
+      "main": [
+        [
+          {
+            "node": "Generate Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Image": {
+      "main": [
+        [
+          {
+            "node": "Upload Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload Image": {
+      "main": [
+        [
+          {
+            "node": "Set Featured Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Featured Image": {
+      "main": [
+        [
+          {
+            "node": "update complete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "update complete": {
+      "main": [
+        [
+          {
+            "node": "update todo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "update todo": {
+      "main": [
+        [
+          {
+            "node": "Read URLs from Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent Content": {
+      "main": [
+        [
+          {
+            "node": "AI Agent title",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent title": {
+      "main": [
+        [
+          {
+            "node": "AI Agent slug",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent Content",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent title",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent slug",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent slug": {
+      "main": [
+        [
+          {
+            "node": "Wordpress",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "86c46ea9-64f1-437b-84a5-bbee43fd7f77",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7b7399ec9e8fb84ce1ac917fba6c20bb30915e8d955164c5cafedd212b175f33"
+  },
+  "id": "WGUaeJuzbOoJZs5U",
+  "tags": []
+}
